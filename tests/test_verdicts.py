@@ -30,6 +30,16 @@ def test_main_verdict_two_tones_names_the_stronger_component():
     assert "bei der stärkeren Komponente (0,250)" in ev.verdict_main(b)[1]
 
 
+def test_main_verdict_two_tones_says_when_the_mean_misses_the_stronger_component():
+    c = make_analysis("Zwei Kosinus", (0.2, 0.35, 1.5), None, None, None, 0.0, 0.2462, 0.1, 0.4)
+    kind, text = ev.verdict_main(c)
+    assert kind == "warning"
+    assert text.endswith("Ihr Mittel (0,246) liegt nicht bei der stärkeren Komponente (0,350): Überschreitet die wahre Frequenz des Summenzeigers die Nyquist-Frequenz, "
+                         "faltet der Phasenschritt, und das Mittel verfehlt beide Komponenten.")
+    real = ev.analyse(ev.Settings(kind="Zwei Kosinus", p1=0.2, p2=0.35, p3=1.5, n=512))
+    assert f"{real.mean_f:.4f}" == "0.2462" and "liegt nicht bei der stärkeren Komponente (0,350)" in ev.verdict_main(real)[1]
+
+
 def test_main_verdict_mean():
     ok = make_analysis("Kosinus mit Mittelwert", (0.2, 0.5, 0.0), 0.001, 0.05, 0.004, 0.0, 0.1995)
     kind, text = ev.verdict_main(ok)
@@ -45,7 +55,7 @@ def test_verdict_chirp_text():
     kind, text = ev.verdict_chirp(rows)
     assert kind == "info"
     assert text == ("Bei 40 dB liegt der Fehler der Momentanfrequenz im Inneren bei 0,0015, an den Rändern bei 0,049; bei 10 dB bei 0,035 und bei 0 dB bei 0,16. "
-                    "**Das Ableiten der Phase verstärkt das Rauschen, und die Ränder tragen immer einen Fehler.**")
+                    "**Das Ableiten der Phase verstärkt das Rauschen, und die Ränder tragen bei diesem Chirp (nicht bingenau) einen Fehler von etwa 0,05 und mehr.**")
 
 
 def test_verdict_bedrosian_text():
@@ -53,7 +63,7 @@ def test_verdict_bedrosian_text():
     kind, text = ev.verdict_bedrosian(rows)
     assert kind == "warning"
     assert text == ("Bis fm/fc = 0,78 sind Hüllkurve und Momentanfrequenz exakt (Fehler 0,0000); bei fm = fc liegt der größte Hüllkurvenfehler bei 0,16 und die Momentanfrequenz zwischen 0,157 und 0,234. "
-                    "**Das untere Seitenband darf den Nullpunkt nicht erreichen.**")
+                    "**In dieser Anordnung darf das untere Seitenband den Nullpunkt nicht erreichen; zusätzlich müssen das obere Seitenband unter der Nyquist-Frequenz und die Tiefe unter 1 bleiben.**")
 
 
 def test_verdict_tones_text():
@@ -62,7 +72,7 @@ def test_verdict_tones_text():
     kind, text = ev.verdict_tones(rows)
     assert kind == "warning"
     assert text == ("Bei gleich starken Komponenten schwankt die Momentanfrequenz zwischen -0,275 und 0,225 und ist in 5,1 % der Zeit negativ; bei r = 0,8 reicht sie von 0,026 bis 0,222. "
-                    "Ihr Mittel ist in allen Fällen 0,1992, die Frequenz der stärkeren (ersten) Komponente, nicht die leistungsgewichtete (0,2246 bei r = 1). **Mit zwei Komponenten ist sie keine Frequenz mehr.**")
+                    "Ihr Mittel ist in allen gemessenen Fällen 0,1992, die Frequenz der ersten Komponente (bei r < 1 die stärkere), nicht die leistungsgewichtete (0,2246 bei r = 1). **Mit zwei vergleichbar starken Komponenten ist sie keine Frequenz mehr.**")
 
 
 def test_verdict_mean_text():
@@ -87,7 +97,7 @@ def test_verdict_envelope_text():
     kind, text = ev.verdict_envelope(rows)
     assert kind == "info"
     assert text == ("Bei -6 dB findet das Hüllkurvenspektrum die Modulationsfrequenz in 40 % der Läufe, das direkte Spektrum (Seitenbänder) in 69 %. "
-                    "**Bei einfacher Modulation bringt das Hüllkurvenspektrum keinen Gewinn; es zeigt fm nur direkt statt als Abstand der Seitenbänder.**")
+                    "**Bei einfacher Modulation (Tiefe 0,3) bringt das Hüllkurvenspektrum in dieser Messung keinen Gewinn; es zeigt fm nur direkt statt als Abstand der Seitenbänder.**")
 
 
 def test_decimal_comma_and_noise_scale():

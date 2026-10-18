@@ -96,6 +96,8 @@ def test_readme_two_tone_numbers():
     assert {de(r["mean"], 4) for r in rows.values()} == {"0,1992"} and de(rows[1.0]["weighted"], 4) == "0,2246"
     for s in ("0,178 bis 0,211", "0,150 bis 0,216", "0,026 bis 0,222", "−0,275 bis 0,225", "5,1 % der Zeit negativ", "0,1992 = f1", "0,2246 bei r = 1"):
         assert s in README
+    folded = ev.analyse(ev.Settings(kind="Zwei Kosinus", p1=0.2, p2=0.35, p3=1.5, n=512))        # r > 1 mit größerem Abstand: der Phasenschritt faltet
+    assert de(folded.mean_f, 4) == "0,2462" and "0,2462 statt 0,35" in README and len(rows) == 6
 
 
 def test_readme_mean_and_edge_numbers():

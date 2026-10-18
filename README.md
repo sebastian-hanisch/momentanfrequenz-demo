@@ -1,12 +1,12 @@
-# Momentanfrequenz und analytisches Signal: Die Phasenableitung ist nur für ein Signal mit einer dominanten Komponente eine Frequenz – Streamlit-Demo
+# Momentanfrequenz und analytisches Signal: Die Phasenableitung ist nur für (nahezu) einkomponentige, schmalbandige Signale ohne Mittelwert eine Frequenz – Streamlit-Demo
 
 <!-- TODO nach dem Deploy: direkt hierher den Live-Link setzen (Leerzeile davor und danach):
 **[→ Demo live ausprobieren](https://sebastianhanisch-momentanfrequenz-demo.streamlit.app/)** -->
 
 Neunte Demo der Reihe **Spektral- und Wavelet-Analyse** in der „Konzepte“-Reihe für die Website „Sebastian Hanisch – Operations Research und Machine Learning“, aufbauend auf der Demo zum **Periodogramm**. Fünf
 Testsignale mit exakt bekannter Wahrheit (Chirp, Amplitudenmodulation, Frequenzmodulation, zwei Kosinus, Kosinus mit Mittelwert) werden über das **analytische Signal** (Hilbert-Transformation) in Hüllkurve und
-Momentanfrequenz zerlegt; Rauschen, Randeffekte, die Bedrosian-Bedingung, die Grenze bei zwei Komponenten, der Mittelwert, Glättung und das Hüllkurvenspektrum werden gegen die Wahrheit gemessen. Die Demo liefert das Orakel
-„wahre Momentanfrequenz“ für das Spektrogramm und die Wavelets danach.
+Momentanfrequenz zerlegt; Rauschen, Randeffekte, die Bedrosian-Bedingung, die Grenze bei zwei Komponenten, der Mittelwert, Glättung und das Hüllkurvenspektrum werden gegen die Wahrheit gemessen. Die Demo führt die
+Definition der „wahren Momentanfrequenz“ ein, die die Demos zum Spektrogramm und zu den Wavelets als Vergleichsmaßstab verwenden.
 
 **Namensfalle:** Die „Envelope“ der Anomalieerkennung (`elliptic-envelope-demo`, robuste Kovarianz) hat mit der Hüllkurve eines Signals nichts zu tun.
 
@@ -19,7 +19,7 @@ Definition, aber sie ist nur für (nahezu) einkomponentige, schmalbandige Signal
 
 Testsignale auf den Zeitpunkten t = 0 … n − 1 (Abtastrate 1, Frequenzen in Zyklen je Abtastwert, Nyquist-Frequenz 0,5): linearer Chirp, Amplitudenmodulation (1 + m cos 2π fm t) cos 2π fc t, Frequenzmodulation
 cos(2π fc t + β sin 2π fm t), Summe zweier Kosinus, Konstante plus Kosinus. Das analytische Signal entsteht per FFT (positive Frequenzen doppelt, negative null), die Momentanfrequenz aus dem Phasenschritt
-arg(z[t+1] z[t]*)/2π an den halben Zeitpunkten; dort ist sie für Chirp und Frequenzmodulation exakt die wahre Frequenz. Glättung (gleitender Mittelwert) und Rechteck-Bandpass sind wählbar. Alles selbst in numpy;
+arg(z[t+1] z[t]*)/2π an den halben Zeitpunkten; dort ist der Phasenschritt für Chirp und Frequenzmodulation exakt die Ableitung der Phase; die geschätzte Momentanfrequenz weicht davon nur ab, wo das Spektrum an 0 oder die Nyquist-Frequenz stößt oder an den Rändern. Glättung (gleitender Mittelwert) und Rechteck-Bandpass sind wählbar. Alles selbst in numpy;
 scipy dient nur als Orakel in den Tests.
 
 ## Methodik
@@ -33,19 +33,19 @@ Alle Zahlen stehen in `tests/test_claims.py` und `tests/test_experiments_golden.
 
 | Frage | Befund |
 |---|---|
-| Wie genau ist die Momentanfrequenz eines linearen Chirps von 0,1 bis 0,3 (n = 512) mit Rauschen? | RMSE im Inneren bei 40 / 30 / 20 / 10 / 5 / 0 dB: 0,0015 / 0,0034 / 0,0105 / 0,0346 / 0,0789 / 0,1572, also etwa 10^(−SNR/20); an den Rändern (je 16 Werte) 0,049 / 0,050 / 0,050 / 0,064 / 0,112 / 0,183. Bei 10 dB liegen 13,6 % der inneren Werte um mehr als 0,05 daneben (60,7 % bei 0 dB). |
-| Wann bricht die Hüllkurve einer Amplitudenmodulation (Bedrosian, bingenau, Tiefe 0,5)? | Für fm/fc = 0,04 bis 0,78 sind Hüllkurve und Momentanfrequenz exakt (Fehler 0,0000); bei fm = fc: größter Hüllkurvenfehler 0,161, Momentanfrequenz 0,157 bis 0,234 (RMSE 0,0253); bei fm/fc = 1,27: Hüllkurvenfehler 0,495, Frequenz 0,114 bis 0,293. Die Schwelle ist scharf: Das untere Seitenband erreicht 0. |
-| Was ist die Momentanfrequenz bei zwei Komponenten (f1 = 0,2 mit Amplitude 1, f2 = 0,25 mit Amplitude r)? | Spanne bei r = 0,3 / 0,5 / 0,8: 0,178 bis 0,211, 0,150 bis 0,216, 0,026 bis 0,222; **bei r = 1: −0,275 bis 0,225, 5,1 % der Zeit negativ.** Das zeitliche Mittel ist immer 0,1992 = f1, die Frequenz der stärkeren Komponente, nicht die leistungsgewichtete (0,2246 bei r = 1). |
-| Was macht ein Mittelwert c (Amplitude 1)? | Mittlere Momentanfrequenz bei c = 0,5: 0,1992 (Spanne 0,134 bis 0,345); bei c = 0,9: 0,0586; ab c = 1,1: 0,0000, weil der Zeiger den Ursprung nicht mehr umkreist. |
+| Wie genau ist die Momentanfrequenz eines linearen Chirps von 0,1 bis 0,3 (n = 512) mit Rauschen? | RMSE im Inneren bei 40 / 30 / 20 / 10 / 5 / 0 dB: 0,0015 / 0,0034 / 0,0105 / 0,0346 / 0,0789 / 0,1572, also etwa proportional zu 10^(−SNR/20) (Faktor ca. 0,1 bis 0,16): je 10 dB mehr Rauschabstand rund dreimal kleiner; an den Rändern (je 16 Werte) 0,049 / 0,050 / 0,050 / 0,064 / 0,112 / 0,183. Bei 10 dB liegen 13,6 % der inneren Werte um mehr als 0,05 daneben (60,7 % bei 0 dB). |
+| Wann bricht die Hüllkurve einer Amplitudenmodulation (Bedrosian, bingenau, Tiefe 0,5)? | Für fm/fc = 0,04 bis 0,78 sind Hüllkurve und Momentanfrequenz exakt (Fehler 0,0000); bei fm = fc: größter Hüllkurvenfehler 0,161, Momentanfrequenz 0,157 bis 0,234 (RMSE 0,0253); bei fm/fc = 1,27: Hüllkurvenfehler 0,495, Frequenz 0,114 bis 0,293. Die Schwelle liegt in dieser Anordnung scharf bei fm = fc (unteres Seitenband bei 0); zusätzlich müssen das obere Seitenband unter der Nyquist-Frequenz und die Tiefe unter 1 bleiben. |
+| Was ist die Momentanfrequenz bei zwei Komponenten (f1 = 0,2 mit Amplitude 1, f2 = 0,25 mit Amplitude r)? | Spanne bei r = 0,3 / 0,5 / 0,8: 0,178 bis 0,211, 0,150 bis 0,216, 0,026 bis 0,222; **bei r = 1: −0,275 bis 0,225, 5,1 % der Zeit negativ.** Das zeitliche Mittel ist in allen sechs gemessenen Fällen (r bis 1) 0,1992 = f1, die Frequenz der ersten Komponente (bei r < 1 die stärkere, bei r = 1 gleich stark, dort zufällig f1), nicht die leistungsgewichtete (0,2246 bei r = 1). Für r > 1 und größeren Frequenzabstand kann der Phasenschritt falten und das Mittel danebenliegen (f1 = 0,2, f2 = 0,35, r = 1,5: 0,2462 statt 0,35). |
+| Was macht ein Mittelwert c (Amplitude 1)? | Mittlere Momentanfrequenz bei c = 0,5: 0,1992 (Spanne 0,134 bis 0,345); bei c = 0,9 schon 0,0586, weil der Phasenschritt am Ursprung über π hinausgeht; ab c = 1,1: 0,0000, weil der Zeiger den Ursprung nicht mehr umkreist. |
 | Wie groß ist der Randeffekt (Kosinus nicht bingenau, n = 512)? | RMSE 0,0104 bei den ersten 16 Werten, 0,0004 im Inneren, 0,0507 bei den letzten 15 Werten. |
 | Was hilft gegen Rauschen (Chirp, n = 512, innen)? | Bei 10 dB: einfach 0,0343; gleitender Mittelwert über 5 / 11 / 21 Werte 0,0103 / 0,0047 / 0,0025; Bandpass 0,0173; Bandpass und Mittelwert über 11 Werte zusammen 0,0036. Bei 0 dB: 0,1572 gegen 0,0388 (L = 21). |
-| Zeigt das Hüllkurvenspektrum die Modulationsfrequenz besser als das direkte Spektrum (einfache Modulation, Tiefe 0,3, n = 2048)? | Nein: bei −6 dB findet das Hüllkurvenspektrum sie in 40,5 % der Läufe, das direkte Spektrum (Seitenbänder fc ± fm) in 69,2 %; bei −3 dB 93,8 % gegen 98,2 %; ab 0 dB beide 100 %. |
+| Zeigt das Hüllkurvenspektrum die Modulationsfrequenz besser als das direkte Spektrum (einfache Modulation, Tiefe 0,3, n = 2048)? | Nein, jedenfalls in dieser Anordnung (Tiefe 0,3, Trägerfrequenz bekannt): bei −6 dB findet das Hüllkurvenspektrum sie in 40,5 % der Läufe, das direkte Spektrum (Seitenbänder fc ± fm) in 69,2 % (je nach Seed schwanken beide um einige Prozentpunkte); bei −3 dB 93,8 % gegen 98,2 %; ab 0 dB beide 100 %. |
 
 ## Ehrliche Grenzen
 
 - **Heimvorteil:** Alle Testsignale sind exakt bekannte Modelle; echte Signale haben unbekannte, oft mehrere Komponenten.
 - **FFT-Hilbert-Transformation:** Randeffekt und Periodizitätsannahme; ein FIR-Hilbert-Filter hat andere Ränder (nicht gebaut).
-- **Das Hüllkurvenspektrum** ist nur für einfache Amplitudenmodulation gemessen; sein Nutzen bei Stoßfolgen (Wälzlagerdiagnose) ist nicht gemessen und wird nicht behauptet.
+- **Das Hüllkurvenspektrum** ist nur für einfache Amplitudenmodulation (Tiefe 0,3) gemessen; sein Nutzen bei Stoßfolgen (Wälzlagerdiagnose) ist nicht gemessen und wird nicht behauptet.
 - **Glättung** ist nur bei linearem Frequenzverlauf unverzerrt.
 - **Nicht gebaut:** Empirical Mode Decomposition (Hilbert-Huang), Teager-Kaiser-Operator, Wigner-Ville-Verteilung (Letztere in der Demo zum Reassignment).
 - **Quellen** (Gabor 1946, Bedrosian 1963, Boashash 1992): nicht gelesen; Formeln per Simulation, Handrechnung und gegen scipy geprüft.

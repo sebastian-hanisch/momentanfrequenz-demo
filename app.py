@@ -1,4 +1,4 @@
-"""Momentanfrequenz und analytisches Signal: Die Phasenableitung ist nur für ein Signal mit einer dominanten Komponente eine Frequenz - interaktive Konzept-Demo
+"""Momentanfrequenz und analytisches Signal: Die Phasenableitung ist nur für (nahezu) einkomponentige, schmalbandige Signale ohne Mittelwert eine Frequenz - interaktive Konzept-Demo
 Sebastian Hanisch - Operations Research und Machine Learning
 
 Stück 9 der Reihe „Spektral- und Wavelet-Analyse“. Fünf Testsignale mit exakt bekannter Wahrheit (Chirp, Amplitudenmodulation, Frequenzmodulation, zwei Kosinus, Kosinus mit Mittelwert) werden
@@ -54,9 +54,9 @@ st.markdown(
     """
 Das Periodogramm sagt, welche Frequenzen in der **ganzen** Aufzeichnung stecken. Ändert sich die Frequenz mit der Zeit (ein Chirp, ein Ton mit Vibrato), fragt man nach der **Momentanfrequenz**: der Frequenz zu einem Zeitpunkt.
 Dafür baut man das **analytische Signal** $z = x + i\\,\\mathcal H\\{x\\}$ (die Hilbert-Transformierte ergänzt zu jedem Kosinus den zugehörigen Sinus), nimmt als **Hüllkurve** den Betrag $|z|$ und als Frequenz die
-**Ableitung der Phase** $\\arg z$. Das ist eine gute Definition, aber nur für Signale mit **einer** dominanten, schmalbandigen Komponente. Die Demo zeigt, wo sie trägt und wo nicht.
+**Ableitung der Phase** $\\arg z$. Das ist eine gute Definition, aber nur für (nahezu) einkomponentige, schmalbandige Signale ohne Mittelwert. Die Demo zeigt, wo sie trägt und wo nicht.
 
-Dies ist die neunte Demo der Reihe „Spektral- und Wavelet-Analyse“, auf das **Periodogramm** aufbauend; sie liefert das Orakel „wahre Momentanfrequenz“ für das Spektrogramm und die Wavelets danach. Alles ist **simuliert**:
+Dies ist die neunte Demo der Reihe „Spektral- und Wavelet-Analyse“, auf das **Periodogramm** aufbauend; sie führt die Definition der „wahren Momentanfrequenz“ ein, die die Demos zum Spektrogramm und zu den Wavelets als Vergleichsmaßstab verwenden. Alles ist **simuliert**:
 Chirp, Modulation und Komponenten sind bekannt. Nicht zu verwechseln mit der „Envelope“ der Anomalieerkennung (robuste Kovarianz): hier ist die Hüllkurve die Einhüllende eines Signals.
 Weiter unten: **🔬 Experimente**, **🚧 Wo die Annahmen enden** und **📐 Mathematische Formulierung**.
 """
@@ -68,7 +68,7 @@ with st.expander("So entsteht die Momentanfrequenz", expanded=True):
 1. **Analytisches Signal:** Die FFT des Signals wird bei negativen Frequenzen auf null gesetzt, bei positiven verdoppelt; zurück in die Zeit ergibt $z$ mit $\\operatorname{Re} z = x$.
 2. **Hüllkurve und Phase:** $|z|$ ist die momentane Amplitude, $\\arg z$ die momentane Phase.
 3. **Momentanfrequenz:** Die Phasenänderung von einem Wert zum nächsten, $\\arg(z_{t+1}\\bar z_t)/2\\pi$, gilt an den halben Zeitpunkten $t + \\tfrac12$.
-4. **Bedingung (Bedrosian):** Hüllkurve und Phase lassen sich nur trennen, wenn das Spektrum der Hüllkurve unterhalb des Spektrums des Trägers liegt. Mit zwei Komponenten oder einem Mittelwert gilt das nicht mehr.
+4. **Bedingung (Bedrosian):** Hüllkurve und Phase lassen sich sicher trennen, wenn das Spektrum der Hüllkurve unterhalb des Spektrums des Trägers liegt. Mit zwei Komponenten oder einem Mittelwert gilt das nicht mehr.
         """
     )
 
@@ -216,12 +216,12 @@ st.markdown(
     """
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
-| **Eine dominante Komponente** | Bei zwei Komponenten schwankt die Momentanfrequenz um die Frequenz der stärkeren herum und kann negativ werden; sie ist keine Frequenz mehr. | Spektrogramm, Wavelets |
-| **Schmalbandig (Bedrosian)** | Erreicht das untere Seitenband der Modulation den Nullpunkt, brechen Hüllkurve und Frequenz ein. | – |
+| **Eine dominante Komponente** | Bei zwei Komponenten schwankt die Momentanfrequenz um die Frequenz der stärkeren herum und kann negativ werden; bei vergleichbar starken Komponenten ist sie keine Frequenz mehr. | Spektrogramm, Wavelets |
+| **Schmalbandig (Bedrosian)** | Erreicht das untere Seitenband der Modulation den Nullpunkt, brechen Hüllkurve und Frequenz ein; auch ein oberes Seitenband über der Nyquist-Frequenz und eine Tiefe ab 1 stören. | – |
 | **Kein Mittelwert** | Ein Mittelwert von der Größe der Amplitude verschiebt den Zeiger; die Phase windet nicht mehr um den Ursprung. | Mittelwert abziehen, Bandpass |
 | **Kein Rauschen** | Das Ableiten der Phase verstärkt das Rauschen; ohne Glättung ist die Momentanfrequenz bei 0 dB kaum zu gebrauchen. | Glättung, Bandpass |
 | **Periodische Fortsetzung** | Die FFT-Hilbert-Transformation nimmt sie an: An den Rändern entstehen Fehler (bei Chirp und nicht bingenauen Frequenzen). | Randwerte verwerfen |
-| **Stationäre Modulation** | Das Hüllkurvenspektrum zeigt die Modulationsfrequenz, ist bei einfacher Modulation aber nicht empfindlicher als das direkte Spektrum. | – |
+| **Stationäre Modulation** | Das Hüllkurvenspektrum zeigt die Modulationsfrequenz, ist bei einfacher Modulation (Tiefe 0,3) in dieser Messung aber nicht empfindlicher als das direkte Spektrum. | – |
 """,
 )
 
@@ -238,11 +238,11 @@ $\operatorname{Re} z = x$, $\operatorname{Im} z = \mathcal H\{x\}$.
 **Momentanfrequenz.** $f_{t+1/2} = \arg(z_{t+1}\bar z_t)/(2\pi)$; für einen linearen Chirp ist dieser Schritt die exakte Ableitung der quadratischen Phase.
 
 **Zwei Komponenten.** Für $e^{i2\pi f_1 t} + r\,e^{i(2\pi f_2 t + \phi)}$ mit der Phasendifferenz $\delta(t)$ ist die Momentanfrequenz
-$\dfrac{f_1 + r^2 f_2 + r(f_1+f_2)\cos\delta}{1 + r^2 + 2r\cos\delta}$; sie wird für $r \to 1$ unbeschränkt (Nullstelle der Hüllkurve). Das zeitliche Mittel ist die Frequenz der stärkeren Komponente (Windungszahl des Zeigers um den Ursprung).
+$\dfrac{f_1 + r^2 f_2 + r(f_1+f_2)\cos\delta}{1 + r^2 + 2r\cos\delta}$; sie wird für $r \to 1$ unbeschränkt (Nullstelle der Hüllkurve). Das zeitliche Mittel des stetigen Zeigers ist die Frequenz der stärkeren Komponente (Windungszahl des Zeigers um den Ursprung); die gemessene Schätzung weicht davon ab, wenn der Phasenschritt faltet, weil die wahre Frequenz des Summenzeigers die Nyquist-Frequenz überschreitet (z. B. $f_1 = 0{,}2$, $f_2 = 0{,}35$, $r = 1{,}5$).
 
-**Mittelwert.** Für $c + e^{i2\pi f t}$ mit $c < 1$ windet der Zeiger um den Ursprung (mittlere Frequenz $f$), mit $c > 1$ nicht (mittlere Frequenz 0).
+**Mittelwert.** Für $c + e^{i2\pi f t}$ mit $c < 1$ windet der Zeiger um den Ursprung (mittlere Frequenz $f$), mit $c > 1$ nicht (mittlere Frequenz 0). Die gemessene Schätzung bricht schon vor $c = 1$ ein, weil der Phasenschritt am Ursprung über $\pi$ hinausgeht und faltet.
 
-**Rauschen.** Die Phase wird mit der Rauschamplitude gestört; die Ableitung vergrößert die Streuung etwa mit $10^{-\mathrm{SNR}/20}$.
+**Rauschen.** Die Phase wird mit der Rauschamplitude gestört; die Ableitung vergrößert die Streuung etwa proportional zu $10^{-\mathrm{SNR}/20}$ (gemessener Faktor etwa 0,1 bis 0,16).
 
 **Quellen.** Lehrbuchwissen und Aufsätze (Gabor 1946; Bedrosian 1963; Boashash 1992). Formeln hier per Simulation, Handrechnung und gegen scipy geprüft; die Quellen selbst wurden nicht gelesen.
         """

@@ -212,8 +212,11 @@ def verdict_main(a: Analysis) -> tuple[str, str]:
     if s.kind == "Zwei Kosinus":
         f1, f2 = s.p1, s.p2
         strong = f1 if s.p3 <= 1.0 else f2
-        return "warning", (f"Zwei Komponenten (bei {de(f1, 3)} und {de(f2, 3)}): Die Momentanfrequenz schwankt zwischen {de(a.f_min, 3)} und {de(a.f_max, 3)}, {de(100 * a.negative_share, 1)} % der Zeit negativ. "
-                           f"Ihr Mittel ({de(a.mean_f, 3)}) liegt bei der stärkeren Komponente ({de(strong, 3)}), nicht dazwischen.")
+        head = (f"Zwei Komponenten (bei {de(f1, 3)} und {de(f2, 3)}): Die Momentanfrequenz schwankt zwischen {de(a.f_min, 3)} und {de(a.f_max, 3)}, {de(100 * a.negative_share, 1)} % der Zeit negativ. ")
+        if abs(a.mean_f - strong) <= C.OK_RMSE:
+            return "warning", head + f"Ihr Mittel ({de(a.mean_f, 3)}) liegt bei der stärkeren Komponente ({de(strong, 3)}), nicht dazwischen."
+        return "warning", head + (f"Ihr Mittel ({de(a.mean_f, 3)}) liegt nicht bei der stärkeren Komponente ({de(strong, 3)}): Überschreitet die wahre Frequenz des Summenzeigers die Nyquist-Frequenz, "
+                                  "faltet der Phasenschritt, und das Mittel verfehlt beide Komponenten.")
     err = a.rmse_inner
     tail = f" Fehler innen {de(err, 4)}, an den Rändern {de(a.rmse_edge, 4)}; Hüllkurve innen {de(a.env_rmse_inner, 4)}."
     if s.kind == "Kosinus mit Mittelwert":
@@ -229,22 +232,22 @@ def verdict_chirp(rows: list[dict]) -> tuple[str, str]:
     by = {r["snr"]: r for r in rows}
     hi, mid, lo = max(by), 10, min(by)
     return "info", (f"Bei {hi} dB liegt der Fehler der Momentanfrequenz im Inneren bei {de(by[hi]['inner'], 4)}, an den Rändern bei {de(by[hi]['edge'], 3)}; bei {mid} dB bei {de(by[mid]['inner'], 3)} und bei {lo} dB bei "
-                    f"{de(by[lo]['inner'], 2)}. **Das Ableiten der Phase verstärkt das Rauschen, und die Ränder tragen immer einen Fehler.**")
+                    f"{de(by[lo]['inner'], 2)}. **Das Ableiten der Phase verstärkt das Rauschen, und die Ränder tragen bei diesem Chirp (nicht bingenau) einen Fehler von etwa 0,05 und mehr.**")
 
 
 def verdict_bedrosian(rows: list[dict]) -> tuple[str, str]:
     ok = [r for r in rows if r["ratio"] < 1.0]
     at = [r for r in rows if abs(r["ratio"] - 1.0) < 1e-9][0]
     return "warning", (f"Bis fm/fc = {de(max(r['ratio'] for r in ok), 2)} sind Hüllkurve und Momentanfrequenz exakt (Fehler {de(max(r['env_max'] for r in ok), 4)}); bei fm = fc liegt der größte Hüllkurvenfehler bei "
-                       f"{de(at['env_max'], 2)} und die Momentanfrequenz zwischen {de(at['f_min'], 3)} und {de(at['f_max'], 3)}. **Das untere Seitenband darf den Nullpunkt nicht erreichen.**")
+                       f"{de(at['env_max'], 2)} und die Momentanfrequenz zwischen {de(at['f_min'], 3)} und {de(at['f_max'], 3)}. **In dieser Anordnung darf das untere Seitenband den Nullpunkt nicht erreichen; zusätzlich müssen das obere Seitenband unter der Nyquist-Frequenz und die Tiefe unter 1 bleiben.**")
 
 
 def verdict_tones(rows: list[dict]) -> tuple[str, str]:
     by = {r["r"]: r for r in rows}
     one = by[1.0]
     return "warning", (f"Bei gleich starken Komponenten schwankt die Momentanfrequenz zwischen {de(one['f_min'], 3)} und {de(one['f_max'], 3)} und ist in {de(100 * one['negative'], 1)} % der Zeit negativ; "
-                       f"bei r = {de(max(r for r in by if r < 1.0), 1)} reicht sie von {de(by[max(r for r in by if r < 1.0)]['f_min'], 3)} bis {de(by[max(r for r in by if r < 1.0)]['f_max'], 3)}. Ihr Mittel ist in allen Fällen "
-                       f"{de(one['mean'], 4)}, die Frequenz der stärkeren (ersten) Komponente, nicht die leistungsgewichtete ({de(one['weighted'], 4)} bei r = 1). **Mit zwei Komponenten ist sie keine Frequenz mehr.**")
+                       f"bei r = {de(max(r for r in by if r < 1.0), 1)} reicht sie von {de(by[max(r for r in by if r < 1.0)]['f_min'], 3)} bis {de(by[max(r for r in by if r < 1.0)]['f_max'], 3)}. Ihr Mittel ist in allen gemessenen Fällen "
+                       f"{de(one['mean'], 4)}, die Frequenz der ersten Komponente (bei r < 1 die stärkere), nicht die leistungsgewichtete ({de(one['weighted'], 4)} bei r = 1). **Mit zwei vergleichbar starken Komponenten ist sie keine Frequenz mehr.**")
 
 
 def verdict_mean(res: dict) -> tuple[str, str]:
@@ -264,4 +267,4 @@ def verdict_envelope(rows: list[dict]) -> tuple[str, str]:
     by = {r["snr"]: r for r in rows}
     low = min(by)
     return "info", (f"Bei {low} dB findet das Hüllkurvenspektrum die Modulationsfrequenz in {de(100 * by[low]['envelope'], 0)} % der Läufe, das direkte Spektrum (Seitenbänder) in {de(100 * by[low]['direct'], 0)} %. "
-                    "**Bei einfacher Modulation bringt das Hüllkurvenspektrum keinen Gewinn; es zeigt fm nur direkt statt als Abstand der Seitenbänder.**")
+                    "**Bei einfacher Modulation (Tiefe 0,3) bringt das Hüllkurvenspektrum in dieser Messung keinen Gewinn; es zeigt fm nur direkt statt als Abstand der Seitenbänder.**")
