@@ -1,7 +1,6 @@
 # Momentanfrequenz und analytisches Signal: Die Phasenableitung ist nur für (nahezu) einkomponentige, schmalbandige Signale ohne Mittelwert eine Frequenz – Streamlit-Demo
 
-<!-- TODO nach dem Deploy: direkt hierher den Live-Link setzen (Leerzeile davor und danach):
-**[→ Demo live ausprobieren](https://sebastianhanisch-momentanfrequenz-demo.streamlit.app/)** -->
+**[→ Demo live ausprobieren](https://sebastianhanisch-momentanfrequenz-demo.streamlit.app/)**
 
 Neunte Demo der Reihe **Spektral- und Wavelet-Analyse** in der „Konzepte“-Reihe für die Website „Sebastian Hanisch – Operations Research und Machine Learning“, aufbauend auf der Demo zum **Periodogramm**. Fünf
 Testsignale mit exakt bekannter Wahrheit (Chirp, Amplitudenmodulation, Frequenzmodulation, zwei Kosinus, Kosinus mit Mittelwert) werden über das **analytische Signal** (Hilbert-Transformation) in Hüllkurve und
@@ -109,4 +108,4 @@ Gebaut mit Streamlit, Plotly, NumPy, pandas und fpdf2.
 
 ---
 
-Diese Demo ist Teil des Portfolios von [Sebastian Hanisch](https://sebastianhanisch.net) – Operations Research und Machine Learning ([Über mich](https://sebastianhanisch.net/ueber-mich.html)). Mehr zu den Demos: [Interaktive Demos](https://sebastianhanisch.net/demos.html).
+Diese Demo ist Teil des Portfolios von [Sebastian Hanisch](https://sebastianhanisch.net) – Operations Research und Machine Learning ([Über mich](https://sebastianhanisch.net/ueber-mich.html)). Mehr zur Reihe: [Spektren und Wavelets: von Fourier zum Vergleich](https://sebastianhanisch.net/konzepte-spektral-wavelet-analyse.html).
